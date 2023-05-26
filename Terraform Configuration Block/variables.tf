@@ -1,3 +1,4 @@
+# Terraform Input Variable template variable blocks below:
 variable "aws_region" {
   type    = string
   default = "us-east-1"
@@ -28,7 +29,7 @@ variable "public_subnets" {
     "public_subnet_3" = 3
   }
 }
-
+## Add the following variable blocks
 variable "variables_sub_cidr" {
   description = "CIDR Block for the Variables Subnet"
   type        = string
@@ -45,4 +46,10 @@ variable "variables_sub_auto_ip" {
   description = "Set Automatic IP Assigment for Variables Subnet"
   type        = bool
   default     = true
+}
+
+variable "environment" {
+  description = "Environment for deployment"
+  type        = string
+  default     = "dev.environ"
 }

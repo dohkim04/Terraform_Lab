@@ -3,30 +3,34 @@ provider "aws" {
   region = "us-east-1"
 }
 
-locals {
-  team        = "api_mgmt_dev"
-  application = "corp_api"
-  server_name = "ec2-${var.environment}-api-${var.public_sub_az}"
-}
-
 #Retrieve the list of AZs in the current AWS region
 data "aws_availability_zones" "available" {}
 data "aws_region" "current" {}
 
-# Terraform Data Block - Lookup Ubuntu 16.04
-data "aws_ami" "ubuntu_16_04" {
+# Local variables for team, application and server name
+locals {
+  team = "api_management_dev"
+  application = "corp_api"
+  server_name = "ec2-${var.environment}-api-${var.variables_sub_az}"
+}
+# Terraform Data Block - Lookup Ubuntu 20.04
+data "aws_ami" "ubuntu" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 
   owners = ["099720109477"]
 }
 
-
-#Define the VPC
+#Define the VPC 
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
 
@@ -34,11 +38,8 @@ resource "aws_vpc" "vpc" {
     Name        = var.vpc_name
     Environment = "demo_environment"
     Terraform   = "true"
-    Region      = data.aws_region.current.name
-
   }
 }
-
 
 #Deploy the private subnets
 resource "aws_subnet" "private_subnets" {
@@ -137,28 +138,43 @@ resource "aws_nat_gateway" "nat_gateway" {
     Name = "demo_nat_gateway"
   }
 }
-
+# Task 1
 # Terraform Resource Block - To Build EC2 instance in Public Subnet
-resource "aws_instance" "web_server" {
-  ami           = data.aws_ami.ubuntu_16_04.id
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.public_subnets["public_subnet_1"].id
+resource "aws_instance" "web_server" {                            # BLOCK
+  ami           = data.aws_ami.ubuntu.id                          # Argument with data expression
+  instance_type = "t2.micro"                                      # Argument
+  subnet_id     = aws_subnet.public_subnets["public_subnet_1"].id # Argument with value as expression
   tags = {
-    Name  = local.server_name
-    Owner = local.team
-    App   = local.application
+    # Name = "Web EC2 Server"
+    Server_Name = local.server_name
+    Server_Owner = local.team
+    Application = local.application
   }
 }
 
-
+# Refer to Terraform Input Variable section
+# Practice : replace static values with new variables defined in variable.tf
 resource "aws_subnet" "variables-subnet" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.variables_sub_cidr
-  availability_zone       = var.variables_sub_az
-  map_public_ip_on_launch = var.variables_sub_auto_ip
-
+  cidr_block              = var.variables_sub_cidr    #"10.0.250.0/24"
+  availability_zone       = var.variables_sub_az      #"us-east-1a"
+  map_public_ip_on_launch = var.variables_sub_auto_ip #true
   tags = {
-    Name      = "sub-variables-${var.variables_sub_az}"
+    Name      = "sub-variables-${var.variables_sub_az}" #sub-variables-us-east-1a
     Terraform = "true"
   }
 }
+
+/* Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_subnet.variables-subnet: Creating...
+aws_subnet.variables-subnet: Still creating... [10s elapsed]
+aws_subnet.variables-subnet: Creation complete after 11s [id=subnet-0765a010c30b258f5]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed. */
