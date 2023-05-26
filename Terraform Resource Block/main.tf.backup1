@@ -143,29 +143,92 @@ resource "aws_instance" "web_server" {                            # BLOCK
   }
 }
 
-# Refer to Terraform Input Variable section
-# Practice : replace static values with new variables defined in variable.tf
-resource "aws_subnet" "variables-subnet" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = var.variables_sub_cidr    #"10.0.250.0/24"
-  availability_zone       = var.variables_sub_az      #"us-east-1a"
-  map_public_ip_on_launch = var.variables_sub_auto_ip #true
+### Task 2
+### Create 2 types of buckets
+
+# 1st bucket
+resource "aws_s3_bucket" "my-new-S3-bucket-sgsdgsgw" {
+  #bucket = "my-new-tf-test-bucket-kimdhsdgwegwwgw"
+  bucket = "my-new-tf-test-bucket-${random_id.randomness.hex}" # use random_id
   tags = {
-    Name      = "sub-variables-${var.variables_sub_az}" #sub-variables-us-east-1a
-    Terraform = "true"
+    Name    = "My S3 Bucket"
+    Purpose = "Introduction to Resources Blocks Lab"
   }
 }
 
-/* Plan: 1 to add, 0 to change, 0 to destroy.
+# Create 2nd bucket
+### The following commented one are no longer valid and caused error.
+#resource "aws_s3_bucket_acl" "my_name_bucket_acl" {
+#  bucket= aws_s3_bucket.my-new-S3-bucket-sgsdgsgw.id
+#  acl = "private"
+#  depends_on = [aws_s3_bucket ]
+#}
 
-Do you want to perform these actions?
-  Terraform will perform the actions described above.
-  Only 'yes' will be accepted to approve.
+# Create 2nd bucket with an ACL  (Udemy course lecturor provided)
+resource "aws_s3_bucket" "my-new-S3-bucket" {
+  bucket = "my-new-tf-test-bucket-kimdh"
+  tags = {
+    Name    = "My S3 Bucket"
+    Purpose = "Intro to Resource Blocks Lab"
+  }
+}
+resource "aws_s3_bucket_ownership_controls" "my_new_bucket_acl" {
+  bucket = aws_s3_bucket.my-new-S3-bucket.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
 
-  Enter a value: yes
+# Create 2nd bucket using ACL  Create a bucket using ACL.
+# Source: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl
+resource "aws_s3_bucket" "hashicorp-example" {
+  bucket = "my-tf-hashicorp-example-bucket"
+}
 
-aws_subnet.variables-subnet: Creating...
-aws_subnet.variables-subnet: Still creating... [10s elapsed]
-aws_subnet.variables-subnet: Creation complete after 11s [id=subnet-0765a010c30b258f5]
+resource "aws_s3_bucket_ownership_controls" "hashicorp-example" {
+  bucket = aws_s3_bucket.hashicorp-example.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
 
-Apply complete! Resources: 1 added, 0 changed, 0 destroyed. */
+resource "aws_s3_bucket_acl" "hashicorp-example" {
+  depends_on = [aws_s3_bucket_ownership_controls.hashicorp-example]
+
+  bucket = aws_s3_bucket.hashicorp-example.id
+  acl    = "private"
+}
+
+#### Task3: 
+#### Add Security groups
+resource "aws_security_group" "my-new-security-group" {
+  name        = "web_server_inbound"
+  description = "Allow inbound traffic on tcp/443"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description = "Allow 443 from the Internet"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "web_server_inbound"
+  Purpose = "Intro to Resource Blocks Lab" }
+}
+
+
+
+# Task 4
+# Add random_id resource
+# random_id resource type is originally from the random provider
+
+resource "random_id" "randomness" { # required new terraform provider to be donwloaded
+  byte_length = 16              
+  
+} 
+# why do we need random string variable? ex. S3 bucket name should be globally unique
+# automate the creation of s3 bucket to avoid name conflict
+# random_id.randomeness: Creating...
+# random_id.randomeness: Creation complete after 0s [id=GMxu1u1Ol8Y88OyAcAZp-g]

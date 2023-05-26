@@ -132,7 +132,7 @@ resource "aws_nat_gateway" "nat_gateway" {
     Name = "demo_nat_gateway"
   }
 }
-
+# Task 1
 # Terraform Resource Block - To Build EC2 instance in Public Subnet
 resource "aws_instance" "web_server" {                            # BLOCK
   ami           = data.aws_ami.ubuntu.id                          # Argument with data expression
@@ -142,3 +142,30 @@ resource "aws_instance" "web_server" {                            # BLOCK
     Name = "Web EC2 Server"
   }
 }
+
+# Refer to Terraform Input Variable section
+# Practice : replace static values with new variables defined in variable.tf
+resource "aws_subnet" "variables-subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.variables_sub_cidr    #"10.0.250.0/24"
+  availability_zone       = var.variables_sub_az      #"us-east-1a"
+  map_public_ip_on_launch = var.variables_sub_auto_ip #true
+  tags = {
+    Name      = "sub-variables-${var.variables_sub_az}" #sub-variables-us-east-1a
+    Terraform = "true"
+  }
+}
+
+/* Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_subnet.variables-subnet: Creating...
+aws_subnet.variables-subnet: Still creating... [10s elapsed]
+aws_subnet.variables-subnet: Creation complete after 11s [id=subnet-0765a010c30b258f5]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed. */
