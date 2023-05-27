@@ -3,7 +3,6 @@
 # you can share the above dependency lock file along with your code with your colleages
 # who want to execute your code in exactly the same Terraform configuration you currently have.
 # This is good for collaboration through Terraform!
-# However, do not share your dependency lock file with anonymous person or entity for security reason.
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
