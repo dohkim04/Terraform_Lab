@@ -1,7 +1,7 @@
 terraform {
   # Configuraiton Block to set required terraform version
-   required_version = ">= 1.0.0" #This works well! 
-  #required_version ="1.0.0" 
+  # required_version = ">= 1.0.0" This works well! 
+  # required_version = "1.0.0"
   /* The version 1.0.0 is not accepted due to its potential incompatibility issue 
      since the current Terraform version in our system is 1.4.6.*/
   /* This is a way to pin and run only a specific Terraform version 

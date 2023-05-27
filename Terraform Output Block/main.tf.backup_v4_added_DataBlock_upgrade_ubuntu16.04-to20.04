@@ -1,12 +1,3 @@
-# Comments does not affect infrastructure or configuration of Terraform Code!
-# "#" for Single-line comment; /* */ for multi-line comments 
-
-# Title: IaC Buildout for Terraform Associate Exam
-/*
-Name: IaC Buildout for Terraform Associate Exam
-Description: AWS Infrastructure Buildout
-*/
-
 # Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
@@ -50,7 +41,7 @@ resource "aws_vpc" "vpc" {
     Environment = "demo_environment"
     Terraform   = "true"
     # Added Region tag using data block below
-    Region = data.aws_region.current.name #data.datatype.nameofblock.nameattribute
+    Region      = data.aws_region.current.name #data.datatype.nameofblock.nameattribute
     # Where can I find this above data?  AWS provider itself - metadata data source - data source - region
     # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/regions
     # Export the particular attribute from attribute references.
@@ -215,10 +206,4 @@ aws_instance.web_server: Still creating... [30s elapsed]
 aws_instance.web_server: Creation complete after 31s [id=i-0de81007420ed2bdd]
 
 Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
-*/
-#########
-/* Configuration Block allows to specify a specific version of Terraform
-   Please note that previous version is not supported 
-   But this is a way of pinning a specific version depending on your needs 
-   Please refer to terraform.tf file and look at 'required_version' there
 */

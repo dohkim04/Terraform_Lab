@@ -1,12 +1,3 @@
-# Comments does not affect infrastructure or configuration of Terraform Code!
-# "#" for Single-line comment; /* */ for multi-line comments 
-
-# Title: IaC Buildout for Terraform Associate Exam
-/*
-Name: IaC Buildout for Terraform Associate Exam
-Description: AWS Infrastructure Buildout
-*/
-
 # Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
@@ -184,6 +175,21 @@ resource "aws_subnet" "variables-subnet" {
     Terraform = "true"
   }
 }
+
+#################################
+## TLS provider - create a resource generating RSA private key
+resource "tls_private_key" "generated" {
+  algorithm = "RSA"
+}
+## Saving the above key file using local provider
+## local provider to interact with local file system to save the generated key
+## in this resource block to a file named MyAWSKey.pem
+resource "local_file" "private_key_pem" {
+  content  = tls_private_key.generated.private_key_pem
+  filename = "MyAWSKey.pem"
+}
+
+
 
 /* Plan: 1 to add, 0 to change, 0 to destroy.
 
