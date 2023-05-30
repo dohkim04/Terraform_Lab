@@ -1,0 +1,4 @@
+# This draft is based on a new VPC
+provider "aws" {
+  region = "us-east-1"
+}
