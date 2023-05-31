@@ -1,9 +1,7 @@
+#Please do not share your Terraform state file due to its sensitive information.
 .terraform.lock.hcl 
-# Hints: 
-# you can share the above dependency lock file along with your code with your colleages
-# who want to execute your code in exactly the same Terraform configuration you currently have.
-# This is good for collaboration through Terraform!
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
+
 
