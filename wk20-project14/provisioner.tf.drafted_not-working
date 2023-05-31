@@ -1,0 +1,203 @@
+# This draft is based on a new VPC
+provider "aws" {
+  region = "us-east-1"
+}
+
+####################################
+#(2) Create a S3 bucket for your Jenkins Artifacts that is not open to the public
+#[2-1] Configure a resource for random provider to create S3 bucket name
+resource "random_id" "randomness" {
+  byte_length = 16
+}
+#[2-2] Create an AWS S3 bucket to store Jenkins Artifacts
+# random string will be created and placed within "${...}" below
+resource "aws_s3_bucket" "jenkinsbucket" {
+  bucket = "my-tf-jenkinsbucket-${random_id.randomness.hex}"
+}
+#[2-3] The bucket objects are under the bucket owner's control 
+# The bucket objects are not visible to external users
+resource "aws_s3_bucket_ownership_controls" "jenkinsbucket" {
+  bucket = aws_s3_bucket.jenkinsbucket.id
+  rule { object_ownership = "BucketOwnerPreferred" }
+}
+#[2-4] Set your bucket as private and it is not visible to external users 
+resource "aws_s3_bucket_acl" "jenkinsbucket" {
+  depends_on = [aws_s3_bucket_ownership_controls.jenkinsbucket]
+  bucket     = aws_s3_bucket.jenkinsbucket.id
+  acl        = "private"
+}
+
+
+
+
+#[3] 
+
+## TLS provider - create a resource generating RSA private key
+resource "tls_private_key" "jenkins-private-key" {
+  algorithm = "RSA"
+}
+## Saving the above key file using local provider
+## local provider to interact with local file system to save the generated key
+## in this resource block to a file named MyAWSKey.pem
+resource "local_file" "jenkins-private-key-pem" {
+  content  = tls_private_key.jenkins-private-key.private_key_pem
+  filename = "MyAWSKey.pem"
+}
+
+######## Terraform Provisioners lessons
+# used to model specific actions on the local or remote machine 
+# to preapare servers or other infrastructure objects for service
+
+# Provisioner lesson Task 1
+# Create SSH keypair and associate it to your instance 
+resource "aws_key_pair" "jenkins-private-key" { # generate public key remotely
+  key_name   = "MyAWSKey"
+  public_key = tls_private_key.jenkins-private-key.public_key_openssh
+
+  lifecycle {
+    ignore_changes = [key_name]
+  }
+}
+
+################ Remote-exec provisioner was stopped due to errors during Jenkins installation
+resource "aws_instance" "ubuntu-server" {
+  ami           = "ami-0261755bbcb8c4a84" # Ubuntu AMI
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [
+    aws_security_group.vpc-ssh.id,
+    aws_security_group.vpc-web.id,
+    aws_security_group.vpc-ping.id
+  ]
+  # subnet_id                   = aws_subnet.public_subnets["public_subnet_1"].id
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.jenkins-private-key.key_name
+  connection { ## Here is connection block for login feature to your instance
+    user        = "ubuntu"
+    private_key = tls_private_key.jenkins-private-key.private_key_pem #tls_private_key.jenkins-private-key.private_key_pem
+    host        = self.public_ip
+  }
+  # Local-exec provisioner
+  # change the pem file attribute in your local Linux server
+  provisioner "local-exec" {
+    command = "chmod 600 ${local_file.jenkins-private-key-pem.filename}"
+  }
+
+  # Remote-exec provisioner 
+  # install Jenkins and Java applications
+  provisioner "remote-exec" {
+    inline = [
+      # Installation Java Runtime Environment
+      "sudo apt -y update &&",
+      "sudo apt -y install openjdk-11-jre &&",
+      "java -version &&",
+
+      # Jenkins installation
+      "curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null &&",
+      "echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null &&",
+      "sudo apt-get -y update &&",
+      "sudo apt-get -y install jenkins &&",
+
+
+      /* After logging into this server using SSH, check the installed Java version below
+      ubuntu@ip-172-31-81-120:~$ java -version
+      openjdk version "11.0.19" 2023-04-18
+      OpenJDK Runtime Environment (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1)
+      OpenJDK 64-Bit Server VM (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1, mixed mode, sharing)*/
+      # Start Jenkins
+      "sudo systemctl enable jenkins &&", # You can enable the Jenkins service to start at boot with this command
+      "sudo systemctl start jenkins &&", # You can start the Jenkins service with this command
+      "sudo systemctl status jenkins", # You can check the status of the Jenkins service using this command
+
+      #"sudo rm -rf /tmp",                                                    # clean up temp directory on the server
+      #"sudo git clone https://github.com/hashicorp/demo-terraform-101 /tmp", #clone down the web app to the tmp directory
+      #"sudo sh /tmp/assets/setup-web.sh",                                    # execute the deployment script (setup-web.sh) in the web app folder
+    ]
+  }
+  tags = {
+    Name = "Ubuntu EC2 Server - Jenkins Group server"
+  }
+
+  lifecycle {
+    ignore_changes = [security_groups]
+  }
+}
+
+#####
+#[4-1] Ingress SSH security group: 
+# Allow traffic on port 22 (SSH) to your instance
+resource "aws_security_group" "vpc-ssh" {
+  name = "vpc-ssh"
+  #vpc_id = aws_vpc.my-vpc.id
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+  }
+  // Terraform removes the default rule
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+#[4-2] Web traffic security group: 
+# Allowing web traffic via the standard HTTP, HTTPS ports as well as port 8080
+resource "aws_security_group" "vpc-web" {
+  name = "vpc-web"
+  #vpc_id      = aws_vpc.my-vpc.id
+  description = "Web Traffic"
+  ingress { # Inbound traffic via HTTP
+    description = "Allow Inbound access to Port 80"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress { # Inbound traffic via HTTPS
+    description = "Allow Inbound access to Port 443"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress { # Inbound traffic via port 8080
+    description = "Allow Inbound access to Port 8080"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress { # Outbound traffic
+    description = "Allow all IPs and Ports Outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+# [4-3] Ping access security group 
+# Allow ICMP for Ping access
+resource "aws_security_group" "vpc-ping" {
+  name = "vpc-ping"
+  #vpc_id      = aws_vpc.my-vpc.id
+  description = "ICMP for Ping Access"
+  ingress {
+    description = "Allow ICMP Traffic"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    description = "Allow All IPs and Ports Outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+

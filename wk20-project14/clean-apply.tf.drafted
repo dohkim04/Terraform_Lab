@@ -1,0 +1,6 @@
+# This draft is based on a new VPC, and
+# can be used to destroy pre-existing infrastructure using "terraform apply"
+
+provider "aws" {
+  region = "us-east-1"
+}
