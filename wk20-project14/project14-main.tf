@@ -1,4 +1,30 @@
+# Project 14 Terraform (Week 20)
+# Name: Do Hyung Kim
+# Establish Jenkins Server 
+
+/* Discussion:
+There are two ways to install Jenkins applications under "aws_instances" resource. 
+==> user-data or provisioner under the resource "aws_instance"
+
+Result: using provisioner resulted in failing Jenkins installation due to a missing script file
+while using user-data completed Jenkins installation. 
+
+User-data approach: 
+- Advantage: 
+   1. reduced significant time to install and configure Jenkins and Java applications using the embedded script file
+   2. tolerable to potential errors as executing all files are done during the creation of EC2 instance as superuser mode. 
+- Disadvantage:
+   1. unable to see the progress of the installation and configuration
+
+Provisioner approach:
+- Advantage:
+   1. every step of installation and configuration can be visibly monitored
+- Disadvantage:
+   1. takes a long time to install and configure Jenkins and Java applicatins as each command should be executed one at a time
+   2. volunerable to any an error during the creation of EC2 instance as normal user mode.
+   
 # This draft is based on the default VPC in AWS
+*/
 provider "aws" {
   region = "us-east-1"
 }
