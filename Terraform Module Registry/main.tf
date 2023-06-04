@@ -382,3 +382,34 @@ output "asg_group_size" {
   value = module.autoscaling.autoscaling_group_max_size
 }
 
+## Added s3 bucket using s3 bucket aws Terraform module
+## See this: https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/2.11.0
+module "s3-bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "2.11.1"
+}
+output "s3_bucket_name" {
+  value = module.s3-bucket.s3_bucket_bucket_domain_name
+}
+
+## Added vpc using aws vpc Terraform module
+## See this: https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.11.0
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = ">3.0.0" #"3.11.0" # "1.73.0" # Older version does not apply due to significant change for the current version over time
+  # Add 21 requires variables 
+
+  name               = "my-vpc-terraform"
+  cidr               = "10.0.0.0/16"
+  azs                = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  enable_nat_gateway = true
+  enable_vpn_gateway = true
+  tags = {
+    Name        = "VPC from Module"
+    Terraform   = "true"
+    Environment = "dev"
+  }
+}
+

@@ -330,3 +330,97 @@ output "public_ip_server_subnet_1" {
 output "public_dns_server_subnet_1" {
   value = aws_instance.web_server.public_dns
 }
+
+#####
+output "public_ip_server2_subnet_2" {
+  value = aws_instance.web_server_2.public_ip
+}
+
+output "public_dns_server2_subnet_2" {
+  value = aws_instance.web_server_2.public_dns
+}
+
+# server module code below
+module "server" {
+  source = "./server"
+  ami = data.aws_ami.ubuntu.id
+  subnet_id = aws_subnet.public_subnets["public_subnet_3"].id
+
+  security_groups = [
+    aws_security_group.vpc-ping.id,
+    aws_security_group.ingress-ssh.id,
+    aws_security_group.vpc-web.id
+  ]
+}
+
+output "public_ip4" { #once aws_instance.web is created, get the public_ip
+     value = module.server.public_ip4
+}
+output "public_dns4" {# once aws_instance.web is created, get the public_dns 
+     value = module.server.public_dns4
+}
+
+/* Outcome on screen below:
+Terraform has compared your real infrastructure against your
+configuration and found no differences, so no changes are
+needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+public_dns = "ec2-44-193-39-214.compute-1.amazonaws.com"
+public_dns4 = "ec2-34-228-25-220.compute-1.amazonaws.com"
+public_dns_server2_subnet_2 = "ec2-44-202-133-119.compute-1.amazonaws.com"
+public_dns_server_subnet_1 = "ec2-3-238-3-202.compute-1.amazonaws.com"
+public_ip = "44.193.39.214"
+public_ip4 = "34.228.25.220"
+public_ip_server2_subnet_2 = "44.202.133.119"
+public_ip_server_subnet_1 = "3.238.3.202"
+
+ */
+
+ # Let's reuse the above module to build another server in a separate subnet
+module "server_subnet_1" {
+  source = "./server"
+  ami = data.aws_ami.ubuntu.id
+  subnet_id = aws_subnet.public_subnets["public_subnet_1"].id
+
+  security_groups = [
+    aws_security_group.vpc-ping.id,
+    aws_security_group.ingress-ssh.id,
+    aws_security_group.vpc-web.id
+  ]
+}
+output "second_public_ip4" {
+  value = module.server_subnet_1.public_ip4
+}
+output "second_public_dns4" {
+  value = module.server_subnet_1.public_dns4
+}
+
+/*
+$ terraform apply -auto-approve
+Changes to Outputs:
+  + public_dns_module-server_subnet_1 = "ec2-100-25-255-186.compute-1.amazonaws.com"
+  + public_ip_module-server_subnet_1  = "100.25.255.186"
+
+You can apply this plan to save these new output values to the
+Terraform state, without changing any real infrastructure.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+public_dns = "ec2-44-193-39-214.compute-1.amazonaws.com"
+public_dns4 = "ec2-34-228-25-220.compute-1.amazonaws.com"
+public_dns_server2_subnet_2 = "ec2-44-202-133-119.compute-1.amazonaws.com"
+public_dns_server_subnet_1 = "ec2-3-238-3-202.compute-1.amazonaws.com"
+public_ip = "44.193.39.214"
+public_ip4 = "34.228.25.220"
+public_ip_server2_subnet_2 = "44.202.133.119"
+public_ip_server_subnet_1 = "3.238.3.202"
+second_public_dns4 = "ec2-100-25-255-186.compute-1.amazonaws.com"
+second_public_ip4 = "100.25.255.186"
+
+*/

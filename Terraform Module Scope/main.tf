@@ -370,10 +370,28 @@ module "autoscaling" {
   create_lt = true
 
   image_id      = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
+  instance_type = "t2.micro" #"t3.micro"
 
   tags_as_map = {
     Name = "Web EC2 Server 2"
   }
 
 }
+
+output "asg_group_size" { # reference the outputthat the child module is etting that value to
+  value = module.autoscaling.autoscaling_group_max_size
+}
+
+# output "autoscaling_group_max_size" { INVALID REFERENCE!!
+#   description = "The maximum size of the autoscale group"
+#   value = try(aws_autoscaling_group.this[0].max_size, "")
+# }
+/* terraform apply -auto-approve
+ Error: Reference to undeclared resource
+│ 
+│   on main.tf line 387, in output "autoscaling_group_max_size":
+│  387:   value = try(aws_autoscaling_group.this[0].max_size, "")
+│ 
+│ A managed resource "aws_autoscaling_group" "this" has not
+│ been declared in the root module.
+*/

@@ -1,4 +1,7 @@
 terraform {
+  backend "local" { ## this is not required for default. 
+    path = "terraform.tfstate" ## default
+  }
   required_version = ">= 1.0.0"
   required_providers {
     aws = {
