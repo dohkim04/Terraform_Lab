@@ -352,3 +352,31 @@ output "public_ip_server_subnet_1" {
 output "public_dns_server_subnet_1" {
   value = module.server_subnet_1.public_dns
 }
+
+/*
+In objects pane under the prod/ directory of the S3 bucket console, check on the file and click open button => Security token will allow to see the content inside the file (object)
+https://my-terraform-state-dhk.s3.us-east-1.amazonaws.com/prod/aws_infra?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjENX%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQCTJUf%2FK79m9SelYqmasuI54hN9qsQ4FjtfWjxCrsw7fAIgX2e4s%2FbSfHejtB3Ri1EkLeABX%2F68B9pR90oeRuemMEIq%2FwIIHRAAGgw1Mjc3NzkzOTQ4ODciDJ6hNxJ3OUnH7obUyyrcAlruSp%2F3zkcz%2B8wpZhsu2u0mJEJVyR5fsVzJ5loAwoTeb16l3XUZumoAv15ARNPXuCzuBO7g6Byu%2Bd4mEccZBAZFIH25Crp2t2KHf2aTrPHCkMJmHLLa4wm5uFQoAXCb5h%2FbLPnyuHMx%2BbLCQbYwy0oZNlDq4YhKJgG1Ak99ZZmu3w9r4tc3cLYJQ0vK54PinN1Vnz9BRN5hlVsEu%2B9mBweyQYmFQ97c8br%2FhY%2BEeu7BWLE%2FdXMp2xiQqpT%2BhhDKN8zxidK5pyBCO8F2TZvMSc15djIg81LAdLi5Xp1%2BzwB4Pk0m7W2%2BxX1CwKawi%2B5m5%2BO9cUZCA1u0IRYAJasQdA3MEBQ5vuaoUXOXv87eKnWVgTXFEIjv4wzTpZzVi8c6S%2BF6RP5kGx3NKC%2FNk6KvLUgIn4DX6mBTTYwYrBAXpipeHtHwdd11%2FA57ccv0KVqjjyHYdFpAOAmFsFK%2BxDD8lvOjBjqzAkhJ1YkmnoCEBJzvXnUtkVkyPlJvBnPDrIf1WTD1E2IHge9qS1fdCm%2BDTmGJgI6imHcmynN5x%2B%2FODqWirqHPqujLvFHdIF%2BOiCmOlMDYYdNDvt0ETCC0J3hodWuff6fw9eA2UIC4n4gCIdzUX7PZ7BKpPEv%2Fbt4MRud6C6n1ae5gyARW9q3GSn9ipMHM0Zt6rgwM6nZ84jbcfQ8k722LvSYh9SI3Jeoq8N28F%2FEYfveT6c4KZGOKhpPNhOfuyCmcmtWVQZ%2BZQmpdmBEb998QgJ%2FA%2FsPeXZF6NJvqoedFZ8csCEVsKnv8OrWYSSHCY%2FJlg1HTHj%2Bc7OQPvxyvyuw2T9iHqzvQSrIw95yYNIq75MtZDrPf5TuNBXnmp0n3XvJN3zd50LPQpw5lvbD8ErH8KDqf6QE%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230604T202645Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAXVYQ2OVDRU6VOWOX%2F20230604%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=9037ed6afd2d22affe14df3d61f779d6a036b191027835f3300421681453632d
+
+{
+  "version": 4,
+  "terraform_version": "1.4.6",
+  "serial": 4,
+  "lineage": "38988c0f-0bef-e5a4-4e0c-1a67b91aca33",
+  "outputs": {},
+  "resources": [],
+  "check_results": null
+}
+
+=============================
+Copy URL into a web browser window => To AWS Security token available. Not allowed to access to the content of the file
+
+https://my-terraform-state-dhk.s3.amazonaws.com/prod/aws_infra
+
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<Error>
+<Code>AccessDenied</Code>
+<Message>Access Denied</Message>
+<RequestId>4J5TZ6FKTTEPR448</RequestId>
+<HostId>u0pja+nbsxpcOSwH51Dn2gDyiXOWJRf8BBMH1mB6OHxM+aLSutzykI6OPsK84xzflDABfmAx9sY=</HostId>
+</Error>
+*/

@@ -316,15 +316,18 @@ resource "aws_instance" "web_server_2" {
 }
 
 module "server" {
-  source          = "./server"
+  source          = "./modules/server" # "./server" is moved to the modules directory   
   ami             = data.aws_ami.ubuntu.id
   subnet_id       = aws_subnet.public_subnets["public_subnet_3"].id
   security_groups = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id]
 }
 
 module "server_subnet_1" {
-  source          = "./server"
+  source          = "./modules/web_server" # "./server" is moved to the modules directory 
   ami             = data.aws_ami.ubuntu.id
+  key_name        = aws_key_pair.generated.key_name           ## newly added!!
+  user            = "ubuntu"                                  ## newly added!!
+  private_key     = tls_private_key.generated.private_key_pem ## newly added!!
   subnet_id       = aws_subnet.public_subnets["public_subnet_1"].id
   security_groups = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id]
 }
@@ -343,4 +346,40 @@ output "public_ip_server_subnet_1" {
 
 output "public_dns_server_subnet_1" {
   value = module.server_subnet_1.public_dns
+}
+
+####  AWS Autoscaling!
+module "autoscaling" {
+  # source  = "terraform-aws-modules/autoscaling/aws" # Using public Module Registry
+  # version = "4.9.0" # Using Public Module Registry 
+  source = "github.com/terraform-aws-modules/terraform-aws-autoscaling?ref=v4.3.0" #no version (x) # ?ref=v4.9.0 (x) # deleted "?ref=v4.9.0" part 
+    /* https://registry.terraform.io/modules/terraform-aws-modules/autoscaling/aws/4.9.0?tab=dependencies
+    Provider Dependencies
+    Providers are Terraform plugins that will be automatically installed 
+    during terraform init if available on the Terraform Registry.
+    - aws (hashicorp/aws) >= 3.64
+    */
+
+  # insert the 1 required variable here
+  # Autoscaling group
+  name = "myasg"
+  vpc_zone_identifier = [aws_subnet.private_subnets["private_subnet_1"].id,
+    aws_subnet.private_subnets["private_subnet_2"].id,
+  aws_subnet.private_subnets["private_subnet_3"].id]
+  min_size         = 0
+  max_size         = 1
+  desired_capacity = 1
+
+  # Launch template
+  use_lt    = true
+  create_lt = true
+
+  image_id      = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
+
+  tags_as_map = {
+    #Name = "Web EC2 Server 2 - autoscaling via Terraform Public Registry"
+    Name = "Web EC2 Server 2 - autoscaling via GitHub source module not work out! Went back to TF Public Registry!"
+  }
+
 }
