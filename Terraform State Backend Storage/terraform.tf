@@ -23,3 +23,30 @@ terraform {
     }
   }
 }
+# For s3 backend with enabling to lock s3 backend
+# terraform {
+#   backend "s3" {
+#     ## Create S3 bucket and validate Terraform Configuration and 
+#     ## Validate State on S3
+#     bucket = "my-terraform-state-dhk"
+#     key    = "prod/aws_infra"
+#     region = "us-east-1"
+
+#     # DynamoDB table for enabling locking for S3 backend
+#     #DynamoDB table name: terraform-lock, ID: LockID
+#     dynamodb_table = "terraform-locks"
+#     encrypt        = true
+#   }
+# }
+
+# Only one backend is allowed for terraform.tf
+# HTTP backend!
+terraform {
+  backend "http" {
+    address        = "http://localhost:5000/terraform_state/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a"
+    lock_address   = "http://localhost:5000/terraform_lock/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a"
+    lock_method    = "PUT"
+    unlock_address = "http://localhost:5000/terraform_lock/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a"
+    unlock_method  = "DELETE"
+  }
+}
