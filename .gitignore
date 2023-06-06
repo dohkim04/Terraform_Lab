@@ -35,3 +35,11 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+
+.stateserver
+
+Terraform State Backend Storage/http/.stateserver/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a.log
+Terraform State Backend Storage/http/.stateserver/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a
+.gitignore
+Terraform Remote State Enhanced Backend Storage/http/.stateserver/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a
+Terraform Remote State Enhanced Backend Storage/http/.stateserver/4cdd0c76-d78b-11e9-9bea-db9cd8374f3a.log
