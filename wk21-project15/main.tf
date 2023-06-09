@@ -122,7 +122,7 @@ resource "random_id" "randomness" {
   byte_length = 16
 }
 #[2-2] Create an AWS S3 bucket to store Terraform State
-random string will be created and placed within "${...}" below
+#random string will be created and placed within "${...}" below
 resource "aws_s3_bucket" "my-tf-project15" {
   bucket = "my-tf-project15-${random_id.randomness.hex}"
 }
