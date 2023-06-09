@@ -86,34 +86,34 @@ resource "aws_instance" "ubuntu-server" {
   ]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.jenkins-SSH-key-pair.key_name
-  user_data                   = <<EOF
-#!/bin/bash  
-# Install Jenkins
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-/usr/share/keyrings/jenkins-keyring.asc > /dev/null
+  user_data                   = <<-EOF
+    #!/bin/bash  
+    # Install Jenkins
+    curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+    /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+    echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+    /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-/etc/apt/sources.list.d/jenkins.list > /dev/null
+    sudo apt-get -y update
+    sudo apt-get install -y jenkins
+   
+    # Installation Java Runtime Environment
+    sudo apt -y update
+    sudo apt -y install openjdk-11-jre
+    java -version
 
-apt-get -y update
-apt-get -y install jenkins
+    # Start Jenkins
+    sudo systemctl start jenkins.service && # You can start the Jenkins service with this command
+    sudo systemctl enable jenkins.service # You can enable the Jenkins service to start at boot with this command
+    # sudo systemctl status jenkins.service # You can check the status of the Jenkins service using this command
+    EOF
 
-# Installation Java Runtime Environment
-apt -y update
-apt -y install openjdk-11-jre
-java -version
-/* After logging into this server using SSH, check the installed Java version below
-ubuntu@ip-172-31-81-120:~$ java -version
-openjdk version "11.0.19" 2023-04-18
-OpenJDK Runtime Environment (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1)
-OpenJDK 64-Bit Server VM (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1, mixed mode, sharing)
-*/
-# Start Jenkins
-systemctl enable jenkins # You can enable the Jenkins service to start at boot with this command
-systemctl start jenkins # You can start the Jenkins service with this command
-systemctl status jenkins # You can check the status of the Jenkins service using this command
-EOF
-
+    /* After logging into this server using SSH, check the installed Java version below
+    ubuntu@ip-172-31-81-120:~$ java -version
+    openjdk version "11.0.19" 2023-04-18
+    OpenJDK Runtime Environment (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1)
+    OpenJDK 64-Bit Server VM (build 11.0.19+7-post-Ubuntu-0ubuntu120.04.1, mixed mode, sharing)
+    */
   # If everything has been set up correctly, you should see an output like this:
   #Loaded: loaded (/lib/systemd/system/jenkins.service; enabled; vendor preset: enabled)
   #Active: active (running) since Tue 2018-11-13 16:19:01 +03; 4min 57s ago
