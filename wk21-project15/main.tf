@@ -122,23 +122,23 @@ resource "random_id" "randomness" {
   byte_length = 16
 }
 #[2-2] Create an AWS S3 bucket to store Terraform State
-# random string will be created and placed within "${...}" below
-# resource "aws_s3_bucket" "my-tf-project15" {
-#   bucket = "my-tf-project15-${random_id.randomness.hex}"
-# }
-# #[2-3] The bucket objects are under the bucket owner's control 
-# # the bucket objects are not visible to external users
-# resource "aws_s3_bucket_ownership_controls" "my-tf-project15" {
-#   bucket = aws_s3_bucket.my-tf-project15.id
-#   rule { object_ownership = var.object-ownership }
-# }
+random string will be created and placed within "${...}" below
+resource "aws_s3_bucket" "my-tf-project15" {
+  bucket = "my-tf-project15-${random_id.randomness.hex}"
+}
+#[2-3] The bucket objects are under the bucket owner's control 
+# the bucket objects are not visible to external users
+resource "aws_s3_bucket_ownership_controls" "my-tf-project15" {
+  bucket = aws_s3_bucket.my-tf-project15.id
+  rule { object_ownership = var.object-ownership }
+}
 
-# #[2-4] Set your bucket as private and it is not visible to external users 
-# resource "aws_s3_bucket_acl" "my-tf-project15" {
-#   depends_on = [aws_s3_bucket_ownership_controls.my-tf-project15]
-#   bucket     = aws_s3_bucket.my-tf-project15.id
-#   acl        = var.bucket-access
-# }
+#[2-4] Set your bucket as private and it is not visible to external users 
+resource "aws_s3_bucket_acl" "my-tf-project15" {
+  depends_on = [aws_s3_bucket_ownership_controls.my-tf-project15]
+  bucket     = aws_s3_bucket.my-tf-project15.id
+  acl        = var.bucket-access
+}
 
 
 
@@ -147,9 +147,9 @@ resource "random_id" "randomness" {
 
 #5 Create an S3 bucket and set it as your remote backend. => Refer to Terraform.tf configuration file
 
-# output bucket-name {
-#   value = aws_s3_bucket.my-tf-project15.bucket
-# }
+output bucket-name {
+  value = aws_s3_bucket.my-tf-project15.bucket
+}
 output region-code {
   value = var.region
 }
