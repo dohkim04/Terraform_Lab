@@ -98,7 +98,7 @@ resource "aws_autoscaling_group" "project15-asg" {
 
   launch_template {
     id = aws_launch_template.apache-server.id
-    #version = aws_launch_template.apache-server.latest_version
+    version = aws_launch_template.apache-server.latest_version
   }
 }
 
@@ -118,27 +118,27 @@ resource "aws_launch_template" "apache-server" {
   user_data = filebase64("apache-server.sh")
 }
 
-resource "random_id" "randomness" {
-  byte_length = 16
-}
-#[2-2] Create an AWS S3 bucket to store Terraform State
-#random string will be created and placed within "${...}" below
-resource "aws_s3_bucket" "my-tf-project15" {
-  bucket = "my-tf-project15-${random_id.randomness.hex}"
-}
-#[2-3] The bucket objects are under the bucket owner's control 
-# the bucket objects are not visible to external users
-resource "aws_s3_bucket_ownership_controls" "my-tf-project15" {
-  bucket = aws_s3_bucket.my-tf-project15.id
-  rule { object_ownership = var.object-ownership }
-}
+# resource "random_id" "randomness" {
+#   byte_length = 16
+# }
+# #[2-2] Create an AWS S3 bucket to store Terraform State
+# #random string will be created and placed within "${...}" below
+# resource "aws_s3_bucket" "my-tf-project15" {
+#   bucket = "my-tf-project15-${random_id.randomness.hex}"
+# }
+# #[2-3] The bucket objects are under the bucket owner's control 
+# # the bucket objects are not visible to external users
+# resource "aws_s3_bucket_ownership_controls" "my-tf-project15" {
+#   bucket = aws_s3_bucket.my-tf-project15.id
+#   rule { object_ownership = var.object-ownership }
+# }
 
-#[2-4] Set your bucket as private and it is not visible to external users 
-resource "aws_s3_bucket_acl" "my-tf-project15" {
-  depends_on = [aws_s3_bucket_ownership_controls.my-tf-project15]
-  bucket     = aws_s3_bucket.my-tf-project15.id
-  acl        = var.bucket-access
-}
+# #[2-4] Set your bucket as private and it is not visible to external users 
+# resource "aws_s3_bucket_acl" "my-tf-project15" {
+#   depends_on = [aws_s3_bucket_ownership_controls.my-tf-project15]
+#   bucket     = aws_s3_bucket.my-tf-project15.id
+#   acl        = var.bucket-access
+# }
 
 
 
@@ -147,9 +147,42 @@ resource "aws_s3_bucket_acl" "my-tf-project15" {
 
 #5 Create an S3 bucket and set it as your remote backend. => Refer to Terraform.tf configuration file
 
-output bucket-name {
-  value = aws_s3_bucket.my-tf-project15.bucket
-}
+
+### The following blocks were added to update S3 backend setting in Terraform configuration file
+# The output should be executed when default local backend is stil configured in the configuration file
+
+# Show the output for your S3 bucket name used for S3 backend
+# output bucket-name {
+#   value = aws_s3_bucket.my-tf-project15.bucket
+# }
+### Show your current working AWS region
 output region-code {
   value = var.region
 }
+
+# Instruction: 
+# [##] Change from default local backend to S3 bucket backend to store state file (terraform.tfstate)
+# ### execute 'terraform init -upgrade' and 'terraform apply -auto-approve' in turn
+# ==> terraform.tfstate file is created as a terraform state file stored in the default local backend
+# ==> find the dislayed S3 bucket name and AWS regional code
+# ### In terraform.tf file (terraform configuration file), 
+# ==> use the above displayed information to update the code block for setting S3 backend and enable the code block 
+# ==> disable the pre-existing code block for your current default local backend  
+# ### execute 'terraform init -migrate-state' to transfer the pre-existing Terraform State file to the S3 bucket
+# ==> using AWS S3 console, confirm if the state file is stored as an object under the S3 bucket
+# ### delete the pre-existing state file from the default local backend for security reason 
+# ==> comments: s3 bucket is considered more secure compared to the default local backend
+
+#[##] Change from S3 bucket backed to default local backend to store terraform state file
+##### In terraform.tf file, 
+# ==> disable the code block for your S3 backend and enable the block for the default local backend
+# ==> next, execute 'terraform init -migrate-state' to transfer your state file back to the default backend
+# ==> type "yes" upon a prompt asking to agree to change the backend
+##### make sure to remove the state file from the S3 bucket
+# ==> find newly created state file in the default local backend
+# ==> using AWS S3 console, go to the S3 bucket and delete the state file in the bucket
+##### remove the S3 bucket 
+# ==> disable any code block used for creating and configuring S3 bucket on main.tf file: [2-2],[2-3],[2-4] 
+# ==> disable the output block reporting S3 bucket name
+# ==> execute 'terraform apply' to delete your S3 bucket  
+# ==> execute terraform state list to check the currently existing terraform resources
