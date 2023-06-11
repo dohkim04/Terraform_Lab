@@ -26,8 +26,8 @@ variable "cidr-block" {
 
 ### AWS EC2 Launch Template parameters ###
 variable "ami" {
-  description = "Amazon Linux 2" #"Amazon Linux 2023 AMI Free-Tier" 
-  default     = "ami-09988af04120b3591" #"ami-04a0ae173da5807d3"  
+  description = "Amazon Linux 2" #"Canonical Ubuntu, 22.04 LTS" #"Amazon Linux 2023 AMI Free-Tier" # 
+  default     = "ami-09988af04120b3591" #"ami-053b0d53c279acc90" #"ami-04a0ae173da5807d3" # 
 }
 variable "instance_size" {
   description = "The size of the instance"
