@@ -6,6 +6,15 @@ terraform {
   backend "local" { # setting default local backend
     path = "terraform.tfstate"
   }
+
+  # set Terraform Cloud remote backend to store Terraform state file
+  # backend "remote" {
+  #   hostname = "app.terraform.io"
+  #   organization = "devops-0621-2023"                                    ####"devops-test-2364"
+  #   workspaces {
+  #     name = "22wk_2tier-architecture"
+  #   }
+  # }  
   required_version = ">= 1.0.0"
   required_providers {
     aws = {
@@ -30,6 +39,7 @@ terraform {
     }
   }
 }
+
 
 # For s3 backend with enabling to lock s3 backend
 # terraform {
